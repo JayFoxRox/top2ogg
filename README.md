@@ -4,7 +4,7 @@
 
 top2ogg is a tool to convert Topheavy video files (*.top) to *.ogg video files.
 
-These kind of files are used in the 2004 classic "THE GuY GAME" (video-game for PC, PS2 and Xbox).
+These kind of files are used in the [2004 classic "THE GuY GAME"](https://en.wikipedia.org/wiki/The_Guy_Game) (video-game for PC, PS2 and Xbox).
 The format internally uses Vorbis for audio and DivX for video.
 *.top appears to be a custom-made container-format by Topheavy Studios, the developer of the game.
 
