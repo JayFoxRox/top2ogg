@@ -136,12 +136,13 @@ int main(int argc, char* argv[]) {
   }
 
   //FIXME: Check for EOF
+  unsigned int fram_index = 0;
   while(1) {
     printf("at %" PRIu64 "\n", ftell(fin));
 
     FRAM fram;
     fread(&fram, 1, sizeof(fram), fin);
-    printf("Read FRAM: %.4s, %" PRIu64 " bytes\n", fram.magic, fram.size);
+    printf("Read FRAM[%u]: %.4s, %" PRIu64 " bytes\n", fram_index, fram.magic, fram.size);
     if (memcmp(fram.magic, "MARF", 4)) {
       break;
     }
@@ -169,8 +170,14 @@ int main(int argc, char* argv[]) {
       }
       uint32_t data_size;
       remaining -= fread(&data_size, 1, sizeof(data_size), fin);
-      fseek(fin, 4+2, SEEK_CUR);
-      remaining -= 4+2;
+      data_size -= 8;
+
+      for(unsigned int i = 0; i < 6; i++) {
+        uint8_t unk;
+        remaining -= fread(&unk, 1, sizeof(unk), fin);
+        printf("0x%02X ", unk);
+      }
+      printf("\n");
 
       uint8_t* data = malloc(data_size);
       remaining -= fread(data, 1, data_size, fin);
@@ -178,12 +185,15 @@ int main(int argc, char* argv[]) {
         printf("Data: %" PRIu32 " bytes\n", data_size);
         ogg_packet header;
         header.packet = &data[0];
-        printf("foo 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X\n",
+        printf("foo 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ...",
                data[0], data[1], data[2], data[3], data[4], data[5]);
+        uint8_t* b = &data[data_size];
+        printf(" 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X\n",
+               b[-6], b[-5], b[-4], b[-3], b[-2], b[-1]);
         header.bytes = data_size;
         header.b_o_s = 0;
         header.e_o_s = 0;
-        header.granulepos = packetno * 1000;
+        header.granulepos = 0;//packetno * 1000;
         header.packetno = packetno++;
 
         ogg_stream_packetin(&os,&header);
@@ -191,10 +201,17 @@ int main(int argc, char* argv[]) {
 
       printf("Remaining: %" PRIu64 " bytes\n", remaining);
       fseek(fin, remaining, SEEK_CUR);
+      fram_index++;
     }
 
     printf("Outputting pages\n");
-
+static int x = 0;
+if (x > 100) {
+  x = 0;
+} else {
+  x++;
+  continue;
+}
     /* write out pages (if any) */
     while(1) {
       int result = ogg_stream_pageout(&os,&og);
