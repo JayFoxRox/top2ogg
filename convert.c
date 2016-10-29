@@ -169,17 +169,21 @@ int main(int argc, char* argv[]) {
       }
       uint32_t data_size;
       remaining -= fread(&data_size, 1, sizeof(data_size), fin);
-//      data_size;
+      fseek(fin, 4+2, SEEK_CUR);
+      remaining -= 4+2;
+
       uint8_t* data = malloc(data_size);
       remaining -= fread(data, 1, data_size, fin);
       {
         printf("Data: %" PRIu32 " bytes\n", data_size);
         ogg_packet header;
         header.packet = &data[0];
-        header.bytes = data_size - 3;
+        printf("foo 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X\n",
+               data[0], data[1], data[2], data[3], data[4], data[5]);
+        header.bytes = data_size;
         header.b_o_s = 0;
-        header.e_o_s = (packetno == 100)?1:0;
-        header.granulepos = packetno * 10;
+        header.e_o_s = 0;
+        header.granulepos = packetno * 1000;
         header.packetno = packetno++;
 
         ogg_stream_packetin(&os,&header);
